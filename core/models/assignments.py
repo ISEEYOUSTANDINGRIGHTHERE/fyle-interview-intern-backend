@@ -5,7 +5,11 @@ from core.libs import helpers, assertions
 from core.models.teachers import Teacher
 from core.models.students import Student
 from sqlalchemy.types import Enum as BaseEnum
+from core.models import teachers 
+import logging
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
 
 class GradeEnum(str, enum.Enum):
     A = 'A'
@@ -56,7 +60,7 @@ class Assignment(db.Model):
             assignment = assignment_new
             db.session.add(assignment_new)
 
-        db.session.flush()
+        db.session.commit()  # Ensure changes are committed
         return assignment
 
     @classmethod
@@ -66,11 +70,15 @@ class Assignment(db.Model):
         assertions.assert_valid(assignment.student_id == auth_principal.student_id, 'This assignment belongs to some other student')
         assertions.assert_valid(assignment.content is not None, 'assignment with empty content cannot be submitted')
 
+        # Validate that the teacher exists
+        teacher = Teacher.query.get(teacher_id)
+        assertions.assert_found(teacher, 'Teacher not found')
+
         assignment.teacher_id = teacher_id
-        db.session.flush()
+        assignment.state = AssignmentStateEnum.SUBMITTED  # Update the state to SUBMITTED
 
+        db.session.commit()  # Ensure changes are committed
         return assignment
-
 
     @classmethod
     def mark_grade(cls, _id, grade, auth_principal: AuthPrincipal):
@@ -80,8 +88,8 @@ class Assignment(db.Model):
 
         assignment.grade = grade
         assignment.state = AssignmentStateEnum.GRADED
-        db.session.flush()
 
+        db.session.commit()  # Ensure changes are committed
         return assignment
 
     @classmethod
