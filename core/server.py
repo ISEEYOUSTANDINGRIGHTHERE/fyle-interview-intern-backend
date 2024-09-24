@@ -28,6 +28,7 @@ def get_principal_from_header():
         raise e
 
 
+
 @app.route('/')
 def ready():
     response = jsonify({
@@ -127,6 +128,66 @@ def get_all_teachers():
     } for t in teachers]
 
     return jsonify({"data": result}), 200
+
+
+@app.route('/principal/assignments', methods=['GET'])
+def get_all_assignments():
+    # Principal authentication logic here
+    principal_id = get_principal_from_header()
+    if not principal_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    assignments = Assignment.query.all()
+    result = [{
+        'id': a.id,
+        'content': a.content,
+        'state': a.state,
+        'grade': a.grade,
+        'student_id': a.student_id,
+        'teacher_id': a.teacher_id,
+        'created_at': a.created_at,
+        'updated_at': a.updated_at
+    } for a in assignments]
+
+    return jsonify({"data": result}), 200
+
+@app.route('/principal/teachers', methods=['GET'])
+def get_all_teachers():
+    # Principal authentication logic
+    principal_id = get_principal_from_header()
+    if not principal_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    teachers = Teacher.query.all()
+    result = [{
+        'id': t.id,
+        'user_id': t.user_id,
+        'created_at': t.created_at,
+        'updated_at': t.updated_at
+    } for t in teachers]
+
+    return jsonify({"data": result}), 200
+
+@app.route('/principal/assignments/grade', methods=['POST'])
+def regrade_assignment():
+    # Principal authentication logic
+    principal_id = get_principal_from_header()
+    if not principal_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json()
+    assignment_id = data['id']
+    new_grade = data['grade']
+
+    assignment = Assignment.query.get(assignment_id)
+    if not assignment:
+        return jsonify({"error": "Assignment not found"}), 404
+
+    assignment.grade = new_grade
+    db.session.commit()
+
+    return jsonify({"data": assignment_schema.dump(assignment)}), 200
+
 
 
 @app.errorhandler(Exception)
