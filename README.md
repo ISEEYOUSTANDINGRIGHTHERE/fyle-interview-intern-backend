@@ -32,7 +32,7 @@ You will hear back within 48 hours from us via email.
 
 ```
 virtualenv env --python=python3.8
-source env/bin/activate
+source env/Scripts/activate
 pip install -r requirements.txt
 ```
 ### Reset DB
@@ -54,5 +54,39 @@ pytest -vvv -s tests/
 
 # for test coverage report
 # pytest --cov
+# pytest --cov-report=html for html report
 # open htmlcov/index.html
+```
+
+### Build the Docker Image
+
+```
+
+docker build -t my-app .
+
+# Replace my-app with your desired image name.
+```
+
+### Run the Docker Container
+
+```
+docker run -p 7755:7755 my-app
+
+# Replace my-app with the name of your Docker image.
+```
+
+### Accessing Your Application
+
+```
+Open a web browser and navigate to http://localhost:7755 to access your application.
+```
+
+### Troubleshooting
+
+```
+If you encounter any issues while setting up or running the application, please check the following:
+
+Make sure Docker and Docker Compose are installed correctly.
+Ensure that the Docker daemon is running.
+Check the Docker logs for any error messages.
 ```
